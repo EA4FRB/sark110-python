@@ -26,9 +26,9 @@
 """
 # ---------------------------------------------------------
 from sark110 import *
-#import numpy as np
 import math
 import matplotlib.pyplot as plt
+from sys import argv
 
 def z2vswr(r, x):
     gamma = math.sqrt((r - 50) ** 2 + x ** 2) / math.sqrt((r + 50) ** 2 + x ** 2)
@@ -38,6 +38,16 @@ def z2vswr(r, x):
     return swr
 
 if __name__ == '__main__':
+    if len(argv) != 4:
+        print("please provide arguments in Hz: start stop, step")
+        exit(-1)
+    start = argv[1]
+    print("start: " + start)
+    stop = argv[2]
+    print("stop: " + stop)
+    step = argv[3]
+    print("step: " + step)
+
     try:
         device = sark_open()
         if not device:
@@ -66,3 +76,4 @@ if __name__ == '__main__':
             print("done")
     finally:
         sark_close(device)
+    exit(1)

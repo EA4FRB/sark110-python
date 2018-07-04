@@ -26,8 +26,19 @@
 """
 #---------------------------------------------------------
 from sark110 import *
+from sys import argv
 
 if __name__ == '__main__':
+    if len(argv) != 4:
+        print("please provide arguments in Hz: start stop, step")
+        exit(-1)
+    start = argv[1]
+    print("start: " + start)
+    stop = argv[2]
+    print("stop: " + stop)
+    step = argv[3]
+    print("step: " + step)
+
     try:
         device = sark_open()
         if not device:
@@ -37,9 +48,10 @@ if __name__ == '__main__':
             prot, ver = sark_version(device)
             print(prot, ver)
             sark_buzzer(device, 1000, 800)
-            for freq in range(10000000, 20000000, 1000000):
+            for freq in range(int(start), int(stop), int(step)):  # setup loop over number of points
                 rs, xs = sark_measure(device, freq)
                 print(rs, xs)
             print("done")
     finally:
         sark_close(device)
+    exit(1)
