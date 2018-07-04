@@ -5,8 +5,9 @@ Python library and examples for the SARK-110 Antenna Analyzer
 This library includes the Python interface library for communicating with the SARK-110 via USB and includes basic examples.
 
 ## Pre-requisites
-pywinusb library
-Some examples require additional libraries
+pywinusb library.
+
+Some examples may require additional libraries
 
 ## License
 Copyright (c) 2018 Melchor Varela - EA4FRB
