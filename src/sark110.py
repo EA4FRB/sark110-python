@@ -36,7 +36,6 @@ rcv = [0xff] * 19
 event = threading.Event()
 
 #---------------------------------------------------------
-
 def shortToBytes(n):
     """
     short to buffer array
@@ -201,3 +200,88 @@ def sark_version(device):
     ver = [0x0] * 15
     ver[:] = rcv[4:]
     return prot, ver
+
+
+def sark_measure_ext(device, freq, step, cal=True, samples=1):
+    """
+    Takes four measurement samples starting at the specified frequency and incremented at the specified step
+    Uses half float, so a bit less precise
+    :param device:  handler
+    :param freq:    frequency in hertz; 0 to turn-off the generator
+    :param step:    step in hertz
+    :param cal:     True to get OSL calibrated data; False to get uncalibrated data
+    :param samples: number of samples for averaging
+    :return: rs, xs  four vals
+    """
+    report = device.find_output_reports()[0]
+    snd = [0x0] * 19
+    snd[1] = 12
+    b = intToBytes(freq)
+    snd[2] = b[0]
+    snd[3] = b[1]
+    snd[4] = b[2]
+    snd[5] = b[3]
+    b = intToBytes(step)
+    snd[8] = b[0]
+    snd[9] = b[1]
+    snd[10] = b[2]
+    snd[11] = b[3]
+    if cal:
+        snd[6] = 1
+    else:
+        snd[6] = 0
+    snd[7] = samples
+    event.clear()
+    report.set_raw_data(snd)
+    report.send()
+    event.wait()
+    if rcv[1] != 79:
+        return 'Nan', 'Nan'
+    rs = [0x0] * 4
+    xs = [0x0] * 4
+
+    rs[0] = half2Float(rcv[2], rcv[3])
+    xs[0] = half2Float(rcv[4], rcv[5])
+    rs[1] = half2Float(rcv[6], rcv[7])
+    xs[1] = half2Float(rcv[8], rcv[9])
+    rs[2] = half2Float(rcv[10], rcv[11])
+    xs[2] = half2Float(rcv[12], rcv[13])
+    rs[3] = half2Float(rcv[14], rcv[15])
+    xs[3] = half2Float(rcv[16], rcv[17])
+
+    return rs, xs
+
+#---------------------------------------------------------
+#half float decompress
+def half2Float(byte1, byte2):
+    hfs = (byte2 << 8) & 0xFF00
+    hfs += byte1 & 0xFF
+    temp = _half2Float(hfs)
+    str = struct.pack('I', temp)
+    return struct.unpack('f', str)[0]
+
+def _half2Float(float16):
+    s = int((float16 >> 15) & 0x00000001)   # sign
+    e = int((float16 >> 10) & 0x0000001f)   # exponent
+    f = int(float16 & 0x000003ff)           # fraction
+
+    if e == 0:
+        if f == 0:
+            return int(s << 31)
+        else:
+            while not (f & 0x00000400):
+                f = f << 1
+                e -= 1
+            e += 1
+            f &= ~0x00000400
+        # print(s,e,f)
+    elif e == 31:
+        if f == 0:
+            return int((s << 31) | 0x7f800000)
+        else:
+            return int((s << 31) | 0x7f800000 | (f << 13))
+
+    e = e + (127 - 15)
+    f = f << 13
+    return int((s << 31) | (e << 23) | f)
+

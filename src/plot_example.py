@@ -66,6 +66,21 @@ if __name__ == '__main__':
                 x.append(freq)
                 y.append(z2vswr(rs[0], xs[0]))
 
+            """
+            Alternative implementation using command sampling four freqs (half float)
+            
+            for freq in range(11000000, 16000000, 4*100000):  # setup loop over number of points
+                rs, xs = sark_measure_ext(device, freq, 100000)
+                x.append(freq)
+                y.append(z2vswr(rs[0], xs[0]))
+                x.append(freq+(1*100000))
+                y.append(z2vswr(rs[1], xs[1]))
+                x.append(freq+(2*100000))
+                y.append(z2vswr(rs[2], xs[2]))
+                x.append(freq+(3*100000))
+                y.append(z2vswr(rs[3], xs[3]))
+            """
+
             plt.plot(x, y)
             plt.title('SARK-110 Test')
             plt.xlabel('Freq MHz')
