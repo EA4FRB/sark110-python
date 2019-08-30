@@ -1,5 +1,5 @@
 # sark110-python
-Python library and examples for the SARK-110 Antenna Analyzer
+Python library and examples for the SARK-110 Antenna Analyzer series.
 
 ## About
 This library includes the Python interface library for communicating with the SARK-110 via USB and includes basic examples.
