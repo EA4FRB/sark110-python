@@ -14,6 +14,11 @@ Some examples may require additional libraries
 ## Linux / Raspberry Pi
 Use sark110_hidapi.py variant.
 
+Install the following packages:
+	$ sudo apt-get install python-dev cython libusb-1.0-0-dev libudev-dev libusb-1.0-0-dev
+	$ sudo pip install --upgrade setuptools
+	$ sudo pip install cython hidapi
+
 First time, copy sark110.rules file to: /etc/udev/rules.d and run:
 
 	sudo udevadm control --reload-rules && udevadm trigger
