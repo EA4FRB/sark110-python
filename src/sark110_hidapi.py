@@ -4,7 +4,7 @@
  
   MIT License
  
-  @author Copyright (c) 2018 Melchor Varela - EA4FRB
+  @author Copyright (c) 2019 Melchor Varela - EA4FRB
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -26,15 +26,15 @@
 """
 #---------------------------------------------------------
 
-import pywinusb.hid as hid
-import threading
+import hid 
 import struct
 import time
 
 #---------------------------------------------------------
+SARK110_VENDOR_ID = 0x0483
+SARK110_PRODUCT_ID = 0x5750
 
-rcv = [0xff] * 19
-event = threading.Event()
+WAIT_HID_DATA_MS = 1000
 
 #---------------------------------------------------------
 def shortToBytes(n):
@@ -65,33 +65,18 @@ def intToBytes(n):
     b[3] = n & 0xFF
     return b
 
-def rx_handler(data):
-    """
-    Handler called when a report is received
-    :param data:
-    :return:
-    """
-    global rcv
-    rcv = data.copy()
-    event.set()
-
-
 def sark_open():
     """
     Opens the device
     :return: handler
     """
-    target_vendor_id = 0x0483
-    target_product_id = 0x5750
-    filter = hid.HidDeviceFilter(vendor_id=target_vendor_id, product_id=target_product_id)
-    device = filter.get_devices()[0]
-    if not device:
-        return
-    else:
-        device.open()
-        device.set_raw_data_handler(rx_handler)
+    device = hid.device()
+    try:
+        device.open(SARK110_VENDOR_ID, SARK110_PRODUCT_ID)
+        device.set_nonblocking(0)
         return device
-
+    except IOError as ex:
+        print(ex)
 
 def sark_close(device):
     """
@@ -111,7 +96,6 @@ def sark_measure(device, freq, cal=True, samples=1):
     :param samples: number of samples for averaging
     :return: rs, xs
     """
-    report = device.find_output_reports()[0]
     snd = [0x0] * 19
     snd[1] = 2
     b = intToBytes(freq)
@@ -124,22 +108,22 @@ def sark_measure(device, freq, cal=True, samples=1):
     else:
         snd[6] = 0
     snd[7] = samples
-    event.clear()
-    report.set_raw_data(snd)
-    report.send()
-    event.wait()
-    if rcv[1] != 79:
+    device.write(snd)
+    rcv = device.read(18, WAIT_HID_DATA_MS)
+    if not rcv:
+        return 'Nan', 'Nan'
+    if rcv[0] != 79:
         return 'Nan', 'Nan'
     b = bytearray([0, 0, 0, 0])
-    b[0] = rcv[2]
-    b[1] = rcv[3]
-    b[2] = rcv[4]
-    b[3] = rcv[5]
+    b[0] = rcv[1]
+    b[1] = rcv[2]
+    b[2] = rcv[3]
+    b[3] = rcv[4]
     rs = struct.unpack('f', b)
-    b[0] = rcv[6]
-    b[1] = rcv[7]
-    b[2] = rcv[8]
-    b[3] = rcv[9]
+    b[0] = rcv[5]
+    b[1] = rcv[6]
+    b[2] = rcv[7]
+    b[3] = rcv[8]
     xs = struct.unpack('f', b)
     return rs, xs
 
@@ -152,7 +136,6 @@ def sark_buzzer(device, freq=0, duration=0):
     :param duration:    duration in ms
     :return:
     """
-    report = device.find_output_reports()[0]
     snd = [0x0] * 19
     snd[1] = 20
     b = shortToBytes(freq)
@@ -161,29 +144,28 @@ def sark_buzzer(device, freq=0, duration=0):
     b = shortToBytes(duration)
     snd[4] = b[0]
     snd[5] = b[1]
-    event.clear()
-    report.set_raw_data(snd)
-    report.send()
-    event.wait()
+    device.write(snd)
+    rcv = device.read(18, WAIT_HID_DATA_MS)
+    if not rcv:
+        return False
     if duration == 0:
         time.sleep(.2)
     else:
-        time.sleep(duration/1000)
-    return rcv[1] == 79
+        time.sleep(duration / 1000)
+    return rcv[0] == 79
 
 def sark_reset(device):
     """
     :param device:      handler
     :return:
     """
-    report = device.find_output_reports()[0]
     snd = [0x0] * 19
     snd[1] = 50
-    event.clear()
-    report.set_raw_data(snd)
-    report.send()
-    event.wait()
-    return rcv[1] == 79
+    device.write(snd)
+    rcv = device.read(18, WAIT_HID_DATA_MS)
+    if not rcv:
+        return false
+    return rcv[0] == 79
 
 def sark_version(device):
     """
@@ -191,21 +173,19 @@ def sark_version(device):
     :param device:  handler
     :return:        prot, ver
     """
-    report = device.find_output_reports()[0]
     snd = [0x0] * 19
     snd[1] = 1
-    event.clear()
-    report.set_raw_data(snd)
-    report.send()
-    event.wait()
-    if rcv[1] != 79:
+    device.write(snd)
+    rcv = device.read(18, WAIT_HID_DATA_MS)
+    if not rcv:
         return 0, ''
-    prot = (rcv[3] << 8) & 0xFF00
-    prot += rcv[2] & 0xFF
+    if rcv[0] != 79:
+        return 0, ''
+    prot = (rcv[2] << 8) & 0xFF00
+    prot += rcv[1] & 0xFF
     ver = [0x0] * 15
-    ver[:] = rcv[4:]
+    ver[:] = rcv[3:]
     return prot, ver
-
 
 def sark_measure_ext(device, freq, step, cal=True, samples=1):
     """
@@ -218,7 +198,6 @@ def sark_measure_ext(device, freq, step, cal=True, samples=1):
     :param samples: number of samples for averaging
     :return: rs, xs  four vals
     """
-    report = device.find_output_reports()[0]
     snd = [0x0] * 19
     snd[1] = 12
     b = intToBytes(freq)
@@ -236,23 +215,23 @@ def sark_measure_ext(device, freq, step, cal=True, samples=1):
     else:
         snd[6] = 0
     snd[7] = samples
-    event.clear()
-    report.set_raw_data(snd)
-    report.send()
-    event.wait()
-    if rcv[1] != 79:
+    device.write(snd)
+    rcv = device.read(18, WAIT_HID_DATA_MS)
+    if not rcv:
+        return 'Nan', 'Nan'
+    if rcv[0] != 79:
         return 'Nan', 'Nan'
     rs = [0x0] * 4
     xs = [0x0] * 4
 
-    rs[0] = half2Float(rcv[2], rcv[3])
-    xs[0] = half2Float(rcv[4], rcv[5])
-    rs[1] = half2Float(rcv[6], rcv[7])
-    xs[1] = half2Float(rcv[8], rcv[9])
-    rs[2] = half2Float(rcv[10], rcv[11])
-    xs[2] = half2Float(rcv[12], rcv[13])
-    rs[3] = half2Float(rcv[14], rcv[15])
-    xs[3] = half2Float(rcv[16], rcv[17])
+    rs[0] = half2Float(rcv[1], rcv[2])
+    xs[0] = half2Float(rcv[3], rcv[4])
+    rs[1] = half2Float(rcv[5], rcv[6])
+    xs[1] = half2Float(rcv[7], rcv[8])
+    rs[2] = half2Float(rcv[9], rcv[10])
+    xs[2] = half2Float(rcv[11], rcv[12])
+    rs[3] = half2Float(rcv[13], rcv[14])
+    xs[3] = half2Float(rcv[15], rcv[16])
 
     return rs, xs
 

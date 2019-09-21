@@ -25,7 +25,8 @@
   SOFTWARE.
 """
 # ---------------------------------------------------------
-from sark110 import *
+#from sark110 import *
+from sark110_hidapi import *
 import math
 import matplotlib.pyplot as plt
 from sys import argv

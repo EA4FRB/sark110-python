@@ -4,7 +4,7 @@
  
   MIT License
  
-  @author Copyright (c) 2018 Melchor Varela - EA4FRB
+  @author Copyright (c) 2018-2019 Melchor Varela - EA4FRB
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,8 @@
   SOFTWARE.
 """
 #---------------------------------------------------------
-from sark110 import *
+#from sark110 import *
+from sark110_hidapi import *
 from sys import argv
 
 if __name__ == '__main__':
