@@ -85,7 +85,8 @@ def sark_close(device):
     :param device:  handler
     :return:
     """
-    device.close()
+    if device:
+        device.close()
 
 
 def sark_measure(device, freq, cal=True, samples=1):
