@@ -84,14 +84,16 @@ def sark_open():
     target_vendor_id = 0x0483
     target_product_id = 0x5750
     filter = hid.HidDeviceFilter(vendor_id=target_vendor_id, product_id=target_product_id)
-    device = filter.get_devices()[0]
-    if not device:
-        return
-    else:
-        device.open()
-        device.set_raw_data_handler(rx_handler)
-        return device
-
+    try:
+        device = filter.get_devices()[0]
+        if not device:
+            return 0
+        else:
+            device.open()
+            device.set_raw_data_handler(rx_handler)
+            return device
+    except:
+        return 0
 
 def sark_close(device):
     """

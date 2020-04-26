@@ -77,6 +77,7 @@ def sark_open():
         return device
     except IOError as ex:
         print(ex)
+        return 0
 
 def sark_close(device):
     """
