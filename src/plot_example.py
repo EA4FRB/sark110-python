@@ -25,8 +25,14 @@
   SOFTWARE.
 """
 # ---------------------------------------------------------
-#from sark110 import *
-from sark110_hidapi import *
+import os
+if os.name == 'nt':
+    from sark110 import *
+elif os.name == 'posix':
+    from sark110_hidapi import *
+else:
+    raise ImportError("Error: no implementation for your platform ('{}') available".format(os.name))
+
 import math
 import matplotlib.pyplot as plt
 from sys import argv
@@ -48,7 +54,6 @@ if __name__ == '__main__':
     print("stop: " + stop)
     step = argv[3]
     print("step: " + step)
-
     try:
         device = sark_open()
         if not device:

@@ -4,7 +4,7 @@
  
   MIT License
  
-  @author Copyright (c) 2019 Melchor Varela - EA4FRB
+  @author Copyright (c) 2020 Melchor Varela - EA4FRB
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -98,6 +98,8 @@ def sark_measure(device, freq, cal=True, samples=1):
     :param samples: number of samples for averaging
     :return: rs, xs
     """
+    if not device:
+        return float('nan'),float('nan')
     snd = [0x0] * 19
     snd[1] = 2
     b = intToBytes(freq)
@@ -113,9 +115,9 @@ def sark_measure(device, freq, cal=True, samples=1):
     device.write(snd)
     rcv = device.read(18, WAIT_HID_DATA_MS)
     if not rcv:
-        return 'Nan', 'Nan'
+        return float('nan'),float('nan')
     if rcv[0] != 79:
-        return 'Nan', 'Nan'
+        return float('nan'),float('nan')
     b = bytearray([0, 0, 0, 0])
     b[0] = rcv[1]
     b[1] = rcv[2]
@@ -138,6 +140,8 @@ def sark_buzzer(device, freq=0, duration=0):
     :param duration:    duration in ms
     :return:
     """
+    if not device:
+        return 0
     snd = [0x0] * 19
     snd[1] = 20
     b = shortToBytes(freq)
@@ -149,7 +153,7 @@ def sark_buzzer(device, freq=0, duration=0):
     device.write(snd)
     rcv = device.read(18, WAIT_HID_DATA_MS)
     if not rcv:
-        return False
+        return 0
     if duration == 0:
         time.sleep(.2)
     else:
@@ -161,12 +165,14 @@ def sark_reset(device):
     :param device:      handler
     :return:
     """
+    if not device:
+        return 0
     snd = [0x0] * 19
     snd[1] = 50
     device.write(snd)
     rcv = device.read(18, WAIT_HID_DATA_MS)
     if not rcv:
-        return false
+        return 0
     return rcv[0] == 79
 
 def sark_version(device):
@@ -175,6 +181,8 @@ def sark_version(device):
     :param device:  handler
     :return:        prot, ver
     """
+    if not device:
+        return 0, ''
     snd = [0x0] * 19
     snd[1] = 1
     device.write(snd)
@@ -200,6 +208,8 @@ def sark_measure_ext(device, freq, step, cal=True, samples=1):
     :param samples: number of samples for averaging
     :return: rs, xs  four vals
     """
+    if not device:
+        return float('nan'),float('nan')
     snd = [0x0] * 19
     snd[1] = 12
     b = intToBytes(freq)
@@ -220,9 +230,9 @@ def sark_measure_ext(device, freq, step, cal=True, samples=1):
     device.write(snd)
     rcv = device.read(18, WAIT_HID_DATA_MS)
     if not rcv:
-        return 'Nan', 'Nan'
+        return float('nan'),float('nan')
     if rcv[0] != 79:
-        return 'Nan', 'Nan'
+        return float('nan'),float('nan')
     rs = [0x0] * 4
     xs = [0x0] * 4
 
