@@ -2,7 +2,7 @@
 Python class and examples for interfacing with the SARK-110 Antenna Analyzer series.
 
 ## About
-Sark110 class in sark110.py, provides an interface for communicating with the SARK-110 via USB and basic examples.
+The Sark110 class in sark110.py provides an interface for communicating with the SARK-110 via USB and basic examples.
 
 ## Pre-requisites
 - pywinusb for Windows; https://github.com/rene-aguirre/pywinusb
@@ -13,9 +13,9 @@ Some examples may require additional libraries
 ## Linux / Raspberry Pi
 
 Install the following packages:
-	$ sudo apt-get install python-dev cython libusb-1.0-0-dev libudev-dev libusb-1.0-0-dev
-	$ sudo pip install --upgrade setuptools
-	$ sudo pip install cython hidapi
+- $ sudo apt-get install python-dev cython libusb-1.0-0-dev libudev-dev libusb-1.0-0-dev
+- $ sudo pip install --upgrade setuptools
+- $ sudo pip install cython hidapi
 
 First time, copy sark110.rules file to: /etc/udev/rules.d and run:
 
