@@ -28,6 +28,7 @@
 import os
 import struct
 import time
+
 if os.name == 'nt':
     import pywinusb.hid as hid
     import threading
@@ -41,6 +42,7 @@ SARK110_PRODUCT_ID = 0x5750
 
 WAIT_HID_DATA_MS = 1000
 
+
 class Sark110:
     _handler = 0
     _is_connect = 0
@@ -51,29 +53,34 @@ class Sark110:
     _fw_protocol = -1
 
     @property
-    def fw_version(self):
+    def fw_version(self) -> str:
         return self._fw_version
+
     @property
-    def fw_protocol(self):
+    def fw_protocol(self) -> int:
         return self._fw_protocol
+
     @property
-    def dev_name(self):
+    def dev_name(self) -> str:
         return self._dev_name
+
     @property
-    def max_freq(self):
+    def max_freq(self) -> int:
         return self._max_freq
+
     @property
-    def min_freq(self):
+    def min_freq(self) -> int:
         return self._min_freq
+
     @property
-    def is_connected(self):
+    def is_connected(self) -> bool:
         return self._is_connect
 
     def __init__(self):
         self._handler = 0
         self._is_connect = 0
 
-    def open(self):
+    def open(self) -> int:
         """
         Opens the device
         :return: <0 err; >0 ok
@@ -104,7 +111,7 @@ class Sark110:
             except IOError as ex:
                 return -1
 
-    def connect(self):
+    def connect(self) -> int:
         """
         Connect to the device and get its characteristics
         :return: <0 err; >0 ok
@@ -126,7 +133,7 @@ class Sark110:
         self._handler = 0
         self._is_connect = 0
 
-    def measure(self, freq, rs, xs, cal=True, samples=1):
+    def measure(self, freq: int, rs: float, xs: float, cal=True, samples=1) -> int:
         """
         Takes one measurement sample at the specified frequency
         :param freq:    frequency in hertz; 0 to turn-off the generator
@@ -166,7 +173,7 @@ class Sark110:
         xs[0] = struct.unpack('f', b)
         return 1
 
-    def buzzer(self, freq=0, duration=0):
+    def buzzer(self, freq=0, duration=0) -> int:
         """
         Sounds the sark110 buzzer.
         :param device:      handler
@@ -193,7 +200,7 @@ class Sark110:
             return 1
         return -2
 
-    def reset(self):
+    def reset(self) -> int:
         """
         Resets the device
         :return: <0 err; >0 ok
@@ -207,7 +214,7 @@ class Sark110:
             return 1
         return -2
 
-    def measure_ext(self, freq, step, rs, xs, cal=True, samples=1):
+    def measure_ext(self, freq: int, step: int, rs: float, xs: float, cal=True, samples=1) -> int:
         """
         Takes four measurement samples starting at the specified frequency and incremented at the specified step
         Uses half float, so a bit less precise
@@ -379,14 +386,14 @@ class Sark110:
                 self.event.wait()
                 return _g_rcv[1:18]
             except:
-                return [0]*18
+                return [0] * 18
         # Linux: hidapi
         else:
             try:
                 self._handler.write(snd)
                 return self._handler.read(18, WAIT_HID_DATA_MS)
             except:
-                return [0]*18
+                return [0] * 18
 
     def _rx_handler(self, data):
         """
