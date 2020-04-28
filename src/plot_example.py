@@ -4,7 +4,7 @@
 
   MIT License
 
-  @author Copyright (c) 2018 Melchor Varela - EA4FRB
+  @author Copyright (c) 2020 Melchor Varela - EA4FRB
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -25,17 +25,11 @@
   SOFTWARE.
 """
 # ---------------------------------------------------------
-import os
-if os.name == 'nt':
-    from sark110 import *
-elif os.name == 'posix':
-    from sark110_hidapi import *
-else:
-    raise ImportError("Error: no implementation for your platform ('{}') available".format(os.name))
-
+from sark110 import *
 import math
 import matplotlib.pyplot as plt
 from sys import argv
+
 
 def z2vswr(r, x):
     gamma = math.sqrt((r - 50) ** 2 + x ** 2) / math.sqrt((r + 50) ** 2 + x ** 2)
@@ -43,6 +37,7 @@ def z2vswr(r, x):
         return 99.999
     swr = (1 + gamma) / (1 - gamma)
     return swr
+
 
 if __name__ == '__main__':
     if len(argv) != 4:
@@ -55,37 +50,24 @@ if __name__ == '__main__':
     step = argv[3]
     print("step: " + step)
     try:
-        device = sark_open()
-        if not device:
+        sark110 = Sark110()
+        sark110.open()
+        if sark110.connect() < 0:
             print("device not connected")
         else:
             print("device connected")
-            prot, ver = sark_version(device)
-            print(prot, ver)
-            sark_buzzer(device, 1000, 800)
+            print(sark110.fw_protocol, sark110.fw_version)
+            sark110.buzzer(1000, 800)
 
             plt.style.use('seaborn-whitegrid')
             y = []
             x = []
+            rs = [0]
+            xs = [0]
             for freq in range(11000000, 16000000, 100000):  # setup loop over number of points
-                rs, xs = sark_measure(device, freq)
+                sark110.measure(freq, rs, xs)
                 x.append(freq)
-                y.append(z2vswr(rs[0], xs[0]))
-
-            """
-            Alternative implementation using command sampling four freqs (half float)
-            
-            for freq in range(11000000, 16000000, 4*100000):  # setup loop over number of points
-                rs, xs = sark_measure_ext(device, freq, 100000)
-                x.append(freq)
-                y.append(z2vswr(rs[0], xs[0]))
-                x.append(freq+(1*100000))
-                y.append(z2vswr(rs[1], xs[1]))
-                x.append(freq+(2*100000))
-                y.append(z2vswr(rs[2], xs[2]))
-                x.append(freq+(3*100000))
-                y.append(z2vswr(rs[3], xs[3]))
-            """
+                y.append(z2vswr(rs[0][0], xs[0][0]))
 
             plt.plot(x, y)
             plt.title('SARK-110 Test')
@@ -96,5 +78,5 @@ if __name__ == '__main__':
 
             print("done")
     finally:
-        sark_close(device)
+        sark110.close()
     exit(1)

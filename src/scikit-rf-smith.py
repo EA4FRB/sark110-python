@@ -4,7 +4,7 @@
 
   MIT License
 
-  @author Copyright (c) 2018-2019 Melchor Varela - EA4FRB
+  @author Copyright (c) 2020 Melchor Varela - EA4FRB
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -26,21 +26,16 @@
 """
 # ---------------------------------------------------------
 
-import os
-if os.name == 'nt':
-    from sark110 import *
-elif os.name == 'posix':
-    from sark110_hidapi import *
-else:
-    raise ImportError("Error: no implementation for your platform ('{}') available".format(os.name))
-
+from sark110 import *
 from skrf import Network
 from sys import argv
+
 
 def z2gamma(rs, xs):
     z = complex(rs, xs)
     z0 = 50 + 0j
     return (z - z0) / (z + z0)
+
 
 if __name__ == '__main__':
     if len(argv) != 4:
@@ -54,26 +49,28 @@ if __name__ == '__main__':
     print("step: " + step)
 
     try:
-        device = sark_open()
-        if not device:
+        sark110 = Sark110()
+        sark110.open()
+        if sark110.connect() < 0:
             print("device not connected")
         else:
             print("device connected")
-            prot, ver = sark_version(device)
-            print(prot, ver)
-            sark_buzzer(device, 1000, 800)
+            print(sark110.fw_protocol, sark110.fw_version)
+            sark110.buzzer(1000, 800)
 
             y = []
             x = []
+            rs = [0]
+            xs = [0]
             for freq in range(int(start), int(stop), int(step)):  # setup loop over number of points
-                rs, xs = sark_measure(device, freq)
+                sark110.measure(freq, rs, xs)
                 x.append(freq)
-                y.append(z2gamma(rs[0], xs[0]))
+                y.append(z2gamma(rs[0][0], xs[0][0]))
 
             ring_slot = Network(frequency=x, s=y, z0=50)
             ring_slot.plot_s_smith()
 
             print("done")
     finally:
-        sark_close(device)
+        sark110.close()
     exit(1)
