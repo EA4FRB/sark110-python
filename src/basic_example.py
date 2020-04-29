@@ -33,29 +33,31 @@ if __name__ == '__main__':
     if len(argv) != 4:
         print("please provide arguments in Hz: start stop, step")
         exit(-1)
-    start = argv[1]
-    print("start: " + start)
-    stop = argv[2]
-    print("stop: " + stop)
-    step = argv[3]
-    print("step: " + step)
 
-    try:
-        sark110 = Sark110()
-        sark110.open()
-        if sark110.connect() < 0:
-            print("device not connected")
-        else:
-            print("device connected")
-            print(sark110.fw_protocol, sark110.fw_version)
-            sark110.buzzer(1000, 800)
-            rs = [0]
-            xs = [0]
-            for freq in range(int(start), int(stop), int(step)):  # setup loop over number of points
-                sark110.measure(freq, rs, xs)
-                print(rs, xs)
+    fr_start = argv[1]
+    print("start: " + fr_start)
+    fr_stop = argv[2]
+    print("stop: " + fr_stop)
+    fr_step = argv[3]
+    print("step: " + fr_step)
 
-            print("done")
-    finally:
-        sark110.close()
+    sark110 = Sark110()
+    sark110.open()
+    sark110.connect()
+    if not sark110.is_connected:
+        print("Device not connected")
+        exit(-1)
+    else:
+        print("Device connected")
+
+    print(sark110.fw_protocol, sark110.fw_version)
+    sark110.buzzer(1000, 800)
+    rs = [0]
+    xs = [0]
+    for freq in range(int(fr_start), int(fr_stop), int(fr_step)):
+        sark110.measure(freq, rs, xs)
+        print(rs, xs)
+
+    print("done")
+    sark110.close()
     exit(1)

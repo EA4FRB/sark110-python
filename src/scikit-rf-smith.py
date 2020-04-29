@@ -25,52 +25,64 @@
   SOFTWARE.
 """
 # ---------------------------------------------------------
-
+import math
 from sark110 import *
 from skrf import Network
 from sys import argv
 
 
-def z2gamma(rs, xs):
-    z = complex(rs, xs)
-    z0 = 50 + 0j
-    return (z - z0) / (z + z0)
+def z2vswr(r, x):
+	gamma = math.sqrt((r - 50) ** 2 + x ** 2) / math.sqrt((r + 50) ** 2 + x ** 2)
+	if gamma > 0.980197824:
+		return 99.999
+	swr = (1 + gamma) / (1 - gamma)
+	return swr
+
+
+def z2mag(r, x):
+	return math.sqrt(r ** 2 + x ** 2)
+
+
+def z2gamma(rs, xs, z0=50 + 0j):
+	z = complex(rs, xs)
+	return (z - z0) / (z + z0)
 
 
 if __name__ == '__main__':
-    if len(argv) != 4:
-        print("please provide arguments in Hz: start stop, step")
-        exit(-1)
-    start = argv[1]
-    print("start: " + start)
-    stop = argv[2]
-    print("stop: " + stop)
-    step = argv[3]
-    print("step: " + step)
+	if len(argv) != 4:
+		print("please provide arguments in Hz: start stop, step")
+		exit(-1)
 
-    try:
-        sark110 = Sark110()
-        sark110.open()
-        if sark110.connect() < 0:
-            print("device not connected")
-        else:
-            print("device connected")
-            print(sark110.fw_protocol, sark110.fw_version)
-            sark110.buzzer(1000, 800)
+	fr_start = argv[1]
+	print("start: " + fr_start)
+	fr_stop = argv[2]
+	print("stop: " + fr_stop)
+	fr_step = argv[3]
+	print("step: " + fr_step)
 
-            y = []
-            x = []
-            rs = [0]
-            xs = [0]
-            for freq in range(int(start), int(stop), int(step)):  # setup loop over number of points
-                sark110.measure(freq, rs, xs)
-                x.append(freq)
-                y.append(z2gamma(rs[0][0], xs[0][0]))
+	sark110 = Sark110()
+	sark110.open()
+	sark110.connect()
+	if not sark110.is_connected:
+		print("Device not connected")
+		exit(-1)
+	else:
+		print("Device connected")
 
-            ring_slot = Network(frequency=x, s=y, z0=50)
-            ring_slot.plot_s_smith()
+	print(sark110.fw_protocol, sark110.fw_version)
+	sark110.buzzer(1000, 800)
 
-            print("done")
-    finally:
-        sark110.close()
-    exit(1)
+	y = []
+	x = []
+	rs = [0]
+	xs = [0]
+	for freq in range(int(fr_start), int(fr_stop), int(fr_step)):
+		sark110.measure(freq, rs, xs)
+		x.append(freq)
+		y.append(z2gamma(rs[0][0], xs[0][0]))
+
+	ring_slot = Network(frequency=x, s=y, z0=50)
+	ring_slot.plot_s_smith()
+
+	sark110.close()
+	exit(1)

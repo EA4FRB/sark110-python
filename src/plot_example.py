@@ -39,44 +39,56 @@ def z2vswr(r, x):
     return swr
 
 
+def z2mag(r, x):
+    return (math.sqrt(r ** 2 + x ** 2))
+
+
+def z2gamma(rs, xs, z0=50 + 0j):
+    z = complex(rs, xs)
+    return (z - z0) / (z + z0)
+
+
 if __name__ == '__main__':
-    if len(argv) != 4:
-        print("please provide arguments in Hz: start stop, step")
-        exit(-1)
-    start = argv[1]
-    print("start: " + start)
-    stop = argv[2]
-    print("stop: " + stop)
-    step = argv[3]
-    print("step: " + step)
-    try:
-        sark110 = Sark110()
-        sark110.open()
-        if sark110.connect() < 0:
-            print("device not connected")
-        else:
-            print("device connected")
-            print(sark110.fw_protocol, sark110.fw_version)
-            sark110.buzzer(1000, 800)
+	if len(argv) != 4:
+		print("please provide arguments in Hz: start stop, step")
+		exit(-1)
 
-            plt.style.use('seaborn-whitegrid')
-            y = []
-            x = []
-            rs = [0]
-            xs = [0]
-            for freq in range(11000000, 16000000, 100000):  # setup loop over number of points
-                sark110.measure(freq, rs, xs)
-                x.append(freq)
-                y.append(z2vswr(rs[0][0], xs[0][0]))
+	fr_start = argv[1]
+	print("start: " + fr_start)
+	fr_stop = argv[2]
+	print("stop: " + fr_stop)
+	fr_step = argv[3]
+	print("step: " + fr_step)
 
-            plt.plot(x, y)
-            plt.title('SARK-110 Test')
-            plt.xlabel('Freq MHz')
-            plt.ylabel('SWR')
-            plt.ylim(1., 10.)
-            plt.show()
+	device = Sark110()
+	device.open()
+	device.connect()
+	if not device.is_connected:
+		print("Device not connected")
+		exit(-2)
+	else:
+		print("Device connected")
 
-            print("done")
-    finally:
-        sark110.close()
-    exit(1)
+	print(device.fw_protocol, device.fw_version)
+	device.buzzer(1000, 800)
+
+	plt.style.use('seaborn-whitegrid')
+	y = []
+	x = []
+	rs = [0]
+	xs = [0]
+	for freq in range(int(fr_start), int(fr_stop), int(fr_step)):
+		device.measure(freq, rs, xs)
+		x.append(freq)
+		y.append(z2vswr(rs[0][0], xs[0][0]))
+
+	plt.plot(x, y)
+	plt.title('SARK-110 Test')
+	plt.xlabel('Freq MHz')
+	plt.ylabel('SWR')
+	plt.ylim(1., 10.)
+	plt.show()
+
+	print("done")
+	device.close()
+	exit(1)
