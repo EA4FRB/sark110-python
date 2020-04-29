@@ -21,6 +21,11 @@ First time, copy sark110.rules file to: /etc/udev/rules.d and run:
 
 	sudo udevadm control --reload-rules && udevadm trigger
 
+## Usage tips
+Ensure that the analyzer is connected to the computer using the USB cable and configured in Computer Control mode (commands are not processed in the other modes).
+
+Check the examples, e.g. basic_example.py, as a quick guide to use Sark110 class. 
+
 ## License
 Copyright (c) 2018-2020 Melchor Varela - EA4FRB
 
