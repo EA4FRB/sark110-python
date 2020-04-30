@@ -27,38 +27,36 @@
 # ---------------------------------------------------------
 import math
 from sark110 import *
-from skrf import Network
+import skrf as rf
 from sys import argv
 
 
-def z2vswr(r, x):
-	gamma = math.sqrt((r - 50) ** 2 + x ** 2) / math.sqrt((r + 50) ** 2 + x ** 2)
-	if gamma > 0.980197824:
-		return 99.999
-	swr = (1 + gamma) / (1 - gamma)
-	return swr
+def z2vswr(rs: float, xs: float, z0=50 + 0j) -> float:
+    gamma = math.sqrt((rs - z0.real) ** 2 + xs ** 2) / math.sqrt((rs + z0.real) ** 2 + xs ** 2)
+    if gamma > 0.980197824:
+        return 99.999
+    swr = (1 + gamma) / (1 - gamma)
+    return swr
 
 
-def z2mag(r, x):
-	return math.sqrt(r ** 2 + x ** 2)
+def z2mag(r: float, x: float) -> float:
+    return math.sqrt(r ** 2 + x ** 2)
 
 
-def z2gamma(rs, xs, z0=50 + 0j):
-	z = complex(rs, xs)
-	return (z - z0) / (z + z0)
+def z2gamma(rs: float, xs: float, z0=50 + 0j) -> complex:
+    z = complex(rs, xs)
+    return (z - z0) / (z + z0)
 
 
 if __name__ == '__main__':
 	if len(argv) != 4:
-		print("please provide arguments in Hz: start stop, step")
+		print("please provide arguments: start (Hz) stop (Hz) points")
 		exit(-1)
 
-	fr_start = argv[1]
-	print("start: " + fr_start)
-	fr_stop = argv[2]
-	print("stop: " + fr_stop)
-	fr_step = argv[3]
-	print("step: " + fr_step)
+	fr_start = int(argv[1])
+	fr_stop = int(argv[2])
+	points = int(argv[3])
+	print("start:", fr_start, "stop:", fr_stop, "points:", points)
 
 	sark110 = Sark110()
 	sark110.open()
@@ -76,13 +74,15 @@ if __name__ == '__main__':
 	x = []
 	rs = [0]
 	xs = [0]
-	for freq in range(int(fr_start), int(fr_stop), int(fr_step)):
-		sark110.measure(freq, rs, xs)
-		x.append(freq)
+	for i in range(points):
+		fr = int(fr_start + i * (fr_stop - fr_start) / (points - 1))
+		sark110.measure(fr, rs, xs)
+		x.append(fr)
 		y.append(z2gamma(rs[0][0], xs[0][0]))
 
-	ring_slot = Network(frequency=x, s=y, z0=50)
+	ring_slot = rf.Network(frequency=x, s=y, z0=50)
 	ring_slot.plot_s_smith()
 
+	print("\nDone !")
 	sark110.close()
 	exit(1)

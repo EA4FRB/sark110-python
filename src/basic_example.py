@@ -31,15 +31,13 @@ from sys import argv
 
 if __name__ == '__main__':
     if len(argv) != 4:
-        print("please provide arguments in Hz: start stop, step")
+        print("please provide arguments: start (Hz) stop (Hz) points")
         exit(-1)
 
-    fr_start = argv[1]
-    print("start: " + fr_start)
-    fr_stop = argv[2]
-    print("stop: " + fr_stop)
-    fr_step = argv[3]
-    print("step: " + fr_step)
+    fr_start = int(argv[1])
+    fr_stop = int(argv[2])
+    points = int(argv[3])
+    print("start:", fr_start, "stop:", fr_stop, "points:", points)
 
     sark110 = Sark110()
     sark110.open()
@@ -54,10 +52,11 @@ if __name__ == '__main__':
     sark110.buzzer(1000, 800)
     rs = [0]
     xs = [0]
-    for freq in range(int(fr_start), int(fr_stop), int(fr_step)):
-        sark110.measure(freq, rs, xs)
-        print(rs, xs)
+    for i in range(points):
+        fr = int(fr_start + i * (fr_stop - fr_start) / (points - 1))
+        sark110.measure(fr, rs, xs)
+        print(fr, rs, xs)
 
-    print("done")
+    print("\nDone !")
     sark110.close()
     exit(1)

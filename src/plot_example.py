@@ -31,64 +31,63 @@ import matplotlib.pyplot as plt
 from sys import argv
 
 
-def z2vswr(r, x):
-    gamma = math.sqrt((r - 50) ** 2 + x ** 2) / math.sqrt((r + 50) ** 2 + x ** 2)
+def z2vswr(rs: float, xs: float, z0=50 + 0j) -> float:
+    gamma = math.sqrt((rs - z0.real) ** 2 + xs ** 2) / math.sqrt((rs + z0.real) ** 2 + xs ** 2)
     if gamma > 0.980197824:
         return 99.999
     swr = (1 + gamma) / (1 - gamma)
     return swr
 
 
-def z2mag(r, x):
-    return (math.sqrt(r ** 2 + x ** 2))
+def z2mag(r: float, x: float) -> float:
+    return math.sqrt(r ** 2 + x ** 2)
 
 
-def z2gamma(rs, xs, z0=50 + 0j):
+def z2gamma(rs: float, xs: float, z0=50 + 0j) -> complex:
     z = complex(rs, xs)
     return (z - z0) / (z + z0)
 
 
 if __name__ == '__main__':
-	if len(argv) != 4:
-		print("please provide arguments in Hz: start stop, step")
-		exit(-1)
+    if len(argv) != 4:
+        print("please provide arguments: start (Hz) stop (Hz) points")
+        exit(-1)
 
-	fr_start = argv[1]
-	print("start: " + fr_start)
-	fr_stop = argv[2]
-	print("stop: " + fr_stop)
-	fr_step = argv[3]
-	print("step: " + fr_step)
+    fr_start = int(argv[1])
+    fr_stop = int(argv[2])
+    points = int(argv[3])
+    print("start:", fr_start, "stop:", fr_stop, "points:", points)
 
-	device = Sark110()
-	device.open()
-	device.connect()
-	if not device.is_connected:
-		print("Device not connected")
-		exit(-2)
-	else:
-		print("Device connected")
+    device = Sark110()
+    device.open()
+    device.connect()
+    if not device.is_connected:
+        print("Device not connected")
+        exit(-2)
+    else:
+        print("Device connected")
 
-	print(device.fw_protocol, device.fw_version)
-	device.buzzer(1000, 800)
+    print(device.fw_protocol, device.fw_version)
+    device.buzzer(1000, 800)
 
-	plt.style.use('seaborn-whitegrid')
-	y = []
-	x = []
-	rs = [0]
-	xs = [0]
-	for freq in range(int(fr_start), int(fr_stop), int(fr_step)):
-		device.measure(freq, rs, xs)
-		x.append(freq)
-		y.append(z2vswr(rs[0][0], xs[0][0]))
+    plt.style.use('seaborn-whitegrid')
+    y = []
+    x = []
+    rs = [0]
+    xs = [0]
+    for i in range(points):
+        fr = int(fr_start + i * (fr_stop - fr_start) / (points - 1))
+        device.measure(fr, rs, xs)
+        x.append(fr)
+        y.append(z2vswr(rs[0][0], xs[0][0]))
 
-	plt.plot(x, y)
-	plt.title('SARK-110 Test')
-	plt.xlabel('Freq MHz')
-	plt.ylabel('SWR')
-	plt.ylim(1., 10.)
-	plt.show()
+    plt.plot(x, y)
+    plt.title('SARK-110 Test')
+    plt.xlabel('Freq MHz')
+    plt.ylabel('SWR')
+    plt.ylim(1., 10.)
+    plt.show()
 
-	print("done")
-	device.close()
-	exit(1)
+    print("\nDone !")
+    device.close()
+    exit(1)
