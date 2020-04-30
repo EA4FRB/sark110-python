@@ -49,40 +49,40 @@ def z2gamma(rs: float, xs: float, z0=50 + 0j) -> complex:
 
 
 if __name__ == '__main__':
-	if len(argv) != 4:
-		print("please provide arguments: start (Hz) stop (Hz) points")
-		exit(-1)
+    if len(argv) != 4:
+        print("please provide arguments: start (Hz) stop (Hz) points")
+        exit(-1)
 
-	fr_start = int(argv[1])
-	fr_stop = int(argv[2])
-	points = int(argv[3])
-	print("start:", fr_start, "stop:", fr_stop, "points:", points)
+    fr_start = int(argv[1])
+    fr_stop = int(argv[2])
+    points = int(argv[3])
+    print("start:", fr_start, "stop:", fr_stop, "points:", points)
 
-	sark110 = Sark110()
-	sark110.open()
-	sark110.connect()
-	if not sark110.is_connected:
-		print("Device not connected")
-		exit(-1)
-	else:
-		print("Device connected")
+    sark110 = Sark110()
+    sark110.open()
+    sark110.connect()
+    if not sark110.is_connected:
+        print("Device not connected")
+        exit(-1)
+    else:
+        print("Device connected")
 
-	print(sark110.fw_protocol, sark110.fw_version)
-	sark110.buzzer(1000, 800)
+    print(sark110.fw_protocol, sark110.fw_version)
+    sark110.buzzer(1000, 800)
 
-	y = []
-	x = []
-	rs = [0]
-	xs = [0]
-	for i in range(points):
-		fr = int(fr_start + i * (fr_stop - fr_start) / (points - 1))
-		sark110.measure(fr, rs, xs)
-		x.append(fr / 1e9)
-		y.append(z2gamma(rs[0][0], xs[0][0]))
+    y = []
+    x = []
+    rs = [0]
+    xs = [0]
+    for i in range(points):
+        fr = int(fr_start + i * (fr_stop - fr_start) / (points - 1))
+        sark110.measure(fr, rs, xs)
+        x.append(fr / 1e9)  # Units in GHz
+        y.append(z2gamma(rs[0][0], xs[0][0]))
 
-	ring_slot = rf.Network(frequency=x, s=y, z0=50)
-	ring_slot.plot_s_smith()
+    ring_slot = rf.Network(frequency=x, s=y, z0=50)
+    ring_slot.plot_s_smith()
 
-	print("\nDone !")
-	sark110.close()
-	exit(1)
+    print("\nDone !")
+    sark110.close()
+    exit(1)
