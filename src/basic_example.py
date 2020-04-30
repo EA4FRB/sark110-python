@@ -55,7 +55,7 @@ if __name__ == '__main__':
     for i in range(points):
         fr = int(fr_start + i * (fr_stop - fr_start) / (points - 1))
         sark110.measure(fr, rs, xs)
-        print(fr, rs, xs)
+        print(fr / 1e6, rs, xs)
 
     print("\nDone !")
     sark110.close()

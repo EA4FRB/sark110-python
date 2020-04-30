@@ -78,7 +78,7 @@ if __name__ == '__main__':
     for i in range(points):
         fr = int(fr_start + i * (fr_stop - fr_start) / (points - 1))
         device.measure(fr, rs, xs)
-        x.append(fr)
+        x.append(fr / 1e6)
         y.append(z2vswr(rs[0][0], xs[0][0]))
 
     plt.plot(x, y)
