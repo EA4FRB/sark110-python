@@ -81,7 +81,7 @@ if __name__ == '__main__':
         y.append(z2gamma(rs[0][0], xs[0][0]))
 
     ring_slot = rf.Network(frequency=x, s=y, z0=50)
-    ring_slot.plot_s_smith()
+    ring_slot.plot_s_smith(draw_labels=True)
 
     print("\nDone !")
     sark110.close()
