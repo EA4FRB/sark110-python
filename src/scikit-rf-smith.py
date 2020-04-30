@@ -77,7 +77,7 @@ if __name__ == '__main__':
 	for i in range(points):
 		fr = int(fr_start + i * (fr_stop - fr_start) / (points - 1))
 		sark110.measure(fr, rs, xs)
-		x.append(fr / 1e6)
+		x.append(fr / 1e9)
 		y.append(z2gamma(rs[0][0], xs[0][0]))
 
 	ring_slot = rf.Network(frequency=x, s=y, z0=50)
