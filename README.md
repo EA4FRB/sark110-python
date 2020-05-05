@@ -1,5 +1,5 @@
 # sark110-python
-Python class and examples for interfacing with the SARK-110 Antenna Analyzer series.
+Python class and examples (some in Jupyter notebook format) for interfacing with the SARK-110 Antenna Analyzer series.
 
 ## About
 The Sark110 class in sark110.py provides an interface for communicating with the SARK-110 via USB and basic examples.
