@@ -5,8 +5,8 @@ Python class and examples (some in Jupyter notebook format) for interfacing with
 The Sark110 class in sark110.py provides an interface for communicating with the SARK-110 via USB and basic examples.
 
 ## Pre-requisites
-- pywinusb for Windows; https://github.com/rene-aguirre/pywinusb
-- cython-hidapi for Linux; https://github.com/gbishop/cython-hidapi
+- pywinusb for Windows; [link](https://github.com/rene-aguirre/pywinusb)
+- cython-hidapi for Linux; [link](https://github.com/gbishop/cython-hidapi)
 
 Some examples may require additional libraries
 
@@ -24,7 +24,7 @@ First time, copy sark110.rules file to: /etc/udev/rules.d and run:
 ## Usage tips
 Ensure that the analyzer is connected to the computer using the USB cable and configured in Computer Control mode (commands are not processed in the other modes).
 
-Check the examples, e.g. basic_example.py, as a quick guide to use Sark110 class. 
+Check the examples, e.g. basic_example.py, as a quick guide to use Sark110 class. There is additional information at the following [blog post](https://hackbeacon.blogspot.com/2020/05/python-notebooks-and-sark-110.html)
 
 ## License
 Copyright (c) 2018-2020 Melchor Varela - EA4FRB
